@@ -1,5 +1,5 @@
 async function beginCodecast() {
-  const signalingServer = new WebSocket(`ws://${window.location.host}`);
+  const signalingServer = new WebSocket(`wss://${window.location.host}`);
     await new Promise((resolve) =>
     signalingServer.addEventListener("open", resolve)
   );
