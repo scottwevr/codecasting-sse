@@ -23,7 +23,8 @@ Deno.serve((req) => {
     const { socket, response } = Deno.upgradeWebSocket(req);
     socket.addEventListener("open", async() => {
           socket.addEventListener("message", ({ data }) => {
-            latestData = new TextEncoder().encode(data);
+            //latestData = new TextEncoder().encode(data);
+            latestData = data;
             dispatchEvent(broadcasterEvent);
           });
       });
@@ -35,7 +36,7 @@ Deno.serve((req) => {
   const body = new ReadableStream({
     start(controller) {
       controller.enqueue(latestData);
-      addEventListener("broadcastupdate", (event)=>{
+      addEventListener("broadcastupdate", (event) => {
         controller.enqueue(latestData);
       },{signal});
     },
@@ -43,7 +44,7 @@ Deno.serve((req) => {
       aborter.abort();
     },
   });
-  return new Response(body, {
+  return new Response(body.pipeThrough(new TextEncoderStream()), {
     headers: {
         "Cache-Control": "no-cache",
         "Content-Type": "text/event-stream",

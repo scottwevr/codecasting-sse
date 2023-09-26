@@ -25091,37 +25091,23 @@
        return true;
    });
 
-   /*
-   // Define StateField
-   const listenChangesExtension = StateField.define({
-     // we won't use the actual StateField value, null or undefined is fine
-     create: () => null,
-     update: (value, transaction) => {
-       if (transaction.docChanged) {
-         // access new content via the Transaction
-         console.log(transaction.newDoc.toJSON());
-       }
-       return null;
-     },
-   });
-
-   // Element for EditorView
-   const parent = window.document.querySelector('#my-div');
-   */
-   // Initialize with StateField as extension
-
    let updateListenerExtension = EditorView.updateListener.of((update) => {
      if (update.docChanged) {
        const content = update.state.doc.toJSON().join("\n");
        dispatchEvent(new CustomEvent('editorChanged', {'detail': content}));
-       //console.log(editorChanged);
      }
    });
 
    new EditorView({
      state: EditorState.create({
        extensions: [basicSetup, javascript(), syntaxHighlighting(defaultHighlightStyle), updateListenerExtension ],
-       doc: 'print("hello world!")',
+       doc: `function setup() {
+  createCanvas(400, 400);
+}
+    
+function draw() {
+  background(220);
+}`,
      }),
      parent: document.body,
    });
