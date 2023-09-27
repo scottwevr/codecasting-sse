@@ -110,8 +110,10 @@ function makeFloating(
           }
         }
         if (follower) {
-          follower.style.transform = element.style.transform.replace(/(\d+)(?!.*\d)/g, "0");
-          const { bottom, left, width } = element.getBoundingClientRect();
+          const { bottom, width } = element.getBoundingClientRect();
+          const matrix = new DOMMatrix(element.style.transform);
+          matrix.f = 0
+          follower.style.transform = matrix.toString();
           follower.style.top = `${bottom}px`;
           follower.style.width = `${width}px`;
         }
