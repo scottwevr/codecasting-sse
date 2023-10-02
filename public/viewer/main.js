@@ -21,44 +21,51 @@ const sketchContainer = document.querySelector(".wrapper");
 const consoleContainer = document.querySelector(".console-container");
 const runButton = document.querySelector(".run-code");
 
-makeFloating(sketchContainer, 0b1111, consoleContainer);
-makeFloating(consoleContainer, 0b0100);
+makeFloating(sketchContainer);
 
 function makeFloating(
   element,
-  resizeMask = 0b1111,
-  follower = null,
-  sensitivity = 4
+  resizeMask = 0b11111,
+  sensitivity = 8
 ) {
-  let cursorMask = 0b0000;
-  const n = 0b1000,
-    s = 0b0100,
-    e = 0b0010,
-    w = 0b0001;
+  let cursorMask = 0b00000;
+  const c = 0b10000,
+    n = 0b01000,
+    s = 0b00100,
+    e = 0b00010,
+    w = 0b00001;
   element.addEventListener("pointermove", ({ target, x, y }) => {
+    const iframe = document.querySelector(".content");
     const rect = element.getBoundingClientRect();
+    const iframeRect = iframe.getBoundingClientRect();
+    const consoleRect = consoleContainer.getBoundingClientRect();
     cursorMask = 0;
     cursorMask |= y - rect.y < sensitivity ? n : 0;
     cursorMask |= rect.y + rect.height - y < sensitivity ? s : 0;
     cursorMask |= rect.x + rect.width - x < sensitivity ? e : 0;
     cursorMask |= x - rect.x < sensitivity ? w : 0;
+    cursorMask |= iframeRect.y + iframeRect.height - y < sensitivity && 
+                  iframeRect.y + iframeRect.height - y > -sensitivity ? c : 0;
     cursorMask &= resizeMask;
     switch (cursorMask) {
-      case 0b1010:
-      case 0b0101:
+      case 0b01010:
+      case 0b00101:
         target.style.cursor = "nesw-resize";
         break;
-      case 0b1001:
-      case 0b0110:
+      case 0b01001:
+      case 0b00110:
         target.style.cursor = "nwse-resize";
         break;
-      case 0b1000:
-      case 0b0100:
+      case 0b01000:
+      case 0b00100:
         target.style.cursor = "ns-resize";
         break;
-      case 0b0001:
-      case 0b0010:
+      case 0b00001:
+      case 0b00010:
         target.style.cursor = "ew-resize";
+        break;
+      case 0b10000:
+        target.style.cursor = "row-resize";
         break;
       default:
         target.style.cursor = target.tagName === "HEADER" ? "move" : "default";
@@ -67,12 +74,15 @@ function makeFloating(
 
   element.addEventListener("pointerdown", (event) => {
     event.preventDefault();
+    const iframe = document.querySelector(".content");
+    iframe.contentWindow.focus();
     if (event.target.className === "close") {
       element?.close();
-      follower?.close();
+      //follower?.close();
     }
     const { x, y, target } = event;
     const rect = element.getBoundingClientRect();
+    const iRect = iframe.getBoundingClientRect();
     const matrix = new DOMMatrix(
       element.style.transform ?? window.getComputedStyle(element).transform
     );
@@ -83,6 +93,7 @@ function makeFloating(
     window.addEventListener(
       "pointermove",
       (event) => {
+        iframe.style.pointerEvents = "none";
         if (isTranslating) {
           const translation = matrix
             .translate(event.x - x, event.y - y)
@@ -98,6 +109,7 @@ function makeFloating(
           }
           if ((loc & s) > 0) {
             element.style.height = `${rect.height - (y - event.y)}px`;
+            iframe.style.height = `${iRect.height - (y - event.y)}px`;
           }
           if ((loc & e) > 0) {
             element.style.width = `${rect.width - (x - event.x)}px`;
@@ -108,35 +120,27 @@ function makeFloating(
               .translate(event.x - x, 0)
               .toString();
           }
-        }
-        if (follower) {
-          const { bottom, width } = element.getBoundingClientRect();
-          const matrix = new DOMMatrix(element.style.transform);
-          matrix.f = 0
-          follower.style.transform = matrix.toString();
-          follower.style.top = `${bottom}px`;
-          follower.style.width = `${width}px`;
+          if ((loc & c) > 0) {
+            iframe.style.height = `${iRect.height - (y - event.y)}px`;
+          }
         }
       },
       { signal }
     );
-    window.addEventListener("pointerup", () => controller.abort(), { signal });
+    window.addEventListener(
+      "pointerup",
+      () => {
+        iframe.style.pointerEvents = "auto";
+        controller.abort();
+      },
+      { signal }
+    );
   });
 }
 
 runButton.addEventListener("pointerdown", (event) => {
   sketchContainer.show();
-  consoleContainer.show();
   sketchContainer.style.transform = new DOMMatrix().toString();
-  consoleContainer.style.transform = new DOMMatrix().toString();
-  sketchContainer.style.width = `400px`;
-  sketchContainer.style.height = `400px`;
-  consoleContainer.style.width = `400px`;
-  consoleContainer.style.height = `100px`;
-  const rect = sketchContainer.getBoundingClientRect();
-  consoleContainer.style.top = `${rect.bottom}px`;
-  consoleContainer.style.left = `${rect.left}px`;
-
   const getBlobURL = (code, type) => {
     const blob = new Blob([code], { type });
     return URL.createObjectURL(blob);
@@ -153,8 +157,8 @@ canvas {
     "text/css"
   );
   const jsURL = getBlobURL(view.state.doc.toString(),
-    "application/javascript"
-  );
+  "application/javascript"
+);
   const htmlURL = getBlobURL(
     `
    <!DOCTYPE html>
@@ -198,11 +202,8 @@ window.addEventListener(
   (event) => {
     consoleContainer.insertAdjacentHTML(
       "afterbegin",
-      `<span>${event.data}</span>`
-    );
-    consoleContainer.scrollIntoView({ block: "end" });
+      `<span>${JSON.stringify(event.data)}</span>`
+    ); 
   },
-
   false
 );
-
