@@ -25091,7 +25091,7 @@
        return true;
    });
 
-   let updateListenerExtension = EditorView.updateListener.of((update) => {
+   EditorView.updateListener.of((update) => {
      if (update.docChanged) {
        const content = update.state.doc.toJSON().join("\n");
        dispatchEvent(new CustomEvent('editorChanged', {'detail': content}));
@@ -25100,7 +25100,7 @@
 
    new EditorView({
      state: EditorState.create({
-       extensions: [basicSetup,EditorState.readOnly.of(true), javascript(), syntaxHighlighting(defaultHighlightStyle), updateListenerExtension ],
+       extensions: [basicSetup,EditorState.readOnly.of(true), javascript(), syntaxHighlighting(defaultHighlightStyle),/* updateListenerExtension*/ ],
        doc: `function setup() {
   createCanvas(400, 400);
 }
@@ -25109,7 +25109,7 @@ function draw() {
   background(220);
 }`,
      }),
-     parent: document.body,
+     parent: document.querySelector(".editor-container"),
    });
 
 })();

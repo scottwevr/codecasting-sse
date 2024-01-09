@@ -1,7 +1,8 @@
 let cmEditorElement = document.querySelector(".cm-editor");
 let view = cmEditorElement.querySelector(".cm-content").cmView.view;
+console.log();
 async function beginCodecast() {
-  const signalingServer = new WebSocket(`wss://${window.location.host}`);
+  const signalingServer = new WebSocket(`${location.hostname !== 'localhost' && window.isSecureContext ? "wss" : "ws"}://${window.location.host}`);
     await new Promise((resolve) =>
     signalingServer.addEventListener("open", resolve)
   );
@@ -136,7 +137,7 @@ function makeFloating(
 
 runButton.addEventListener("pointerdown", (event) => {
   sketchContainer.show();
-  sketchContainer.style.transform = new DOMMatrix().toString();
+  //sketchContainer.style.transform = new DOMMatrix().toString();
   const getBlobURL = (code, type) => {
     const blob = new Blob([code], { type });
     return URL.createObjectURL(blob);
@@ -190,6 +191,7 @@ canvas {
     URL.revokeObjectURL(cssURL);
     URL.revokeObjectURL(htmlURL);
     iframe.src = "about:blank";
+    consoleContainer.replaceChildren();
   });
 });
 

@@ -76,10 +76,7 @@ function makeFloating(
     event.preventDefault();
     const iframe = document.querySelector(".content");
     iframe.contentWindow.focus();
-    if (event.target.className === "close") {
-      element?.close();
-      //follower?.close();
-    }
+    if (event.target.className === "close") element?.close();
     const { x, y, target } = event;
     const rect = element.getBoundingClientRect();
     const iRect = iframe.getBoundingClientRect();
@@ -140,7 +137,7 @@ function makeFloating(
 
 runButton.addEventListener("pointerdown", (event) => {
   sketchContainer.show();
-  sketchContainer.style.transform = new DOMMatrix().toString();
+  //sketchContainer.style.transform = new DOMMatrix().toString();
   const getBlobURL = (code, type) => {
     const blob = new Blob([code], { type });
     return URL.createObjectURL(blob);
@@ -194,6 +191,7 @@ canvas {
     URL.revokeObjectURL(cssURL);
     URL.revokeObjectURL(htmlURL);
     iframe.src = "about:blank";
+    consoleContainer.replaceChildren();
   });
 });
 
