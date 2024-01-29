@@ -1,8 +1,8 @@
 let cmEditorElement = document.querySelector(".cm-editor");
 let view = cmEditorElement.querySelector(".cm-content").cmView.view;
-console.log();
+
 async function beginCodecast() {
-  const signalingServer = new WebSocket(`${location.hostname !== 'localhost' && window.isSecureContext ? "wss" : "ws"}://${window.location.host}`);
+  const signalingServer = new WebSocket(`ws://${window.location.host}`);
     await new Promise((resolve) =>
     signalingServer.addEventListener("open", resolve)
   );

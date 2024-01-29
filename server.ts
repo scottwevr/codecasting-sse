@@ -1,9 +1,20 @@
-import {serveDir} from "https://deno.land/std@0.199.0/http/file_server.ts";
-import * as path from "https://deno.land/std@0.197.0/path/mod.ts";
+import {serveDir} from "https://deno.land/std@0.211.0/http/file_server.ts";
+import * as path from "https://deno.land/std@0.211.0/path/mod.ts";
 
+let channel = new BroadcastChannel("codecast");
 let latestData: Uint8Array;
+let connected = new Set();
 const broadcasterEvent = new Event("broadcastupdate");
-
+channel.addEventListener("message", ({ data }) => {
+  latestData = data;
+  dispatchEvent(broadcasterEvent);
+});
+/*
+setInterval(()=>{
+    const bytes = Deno.memoryUsage().rss;
+    console.log(Math.floor(bytes / (1024 * 1024) * 10) / 10);
+  },5000);
+  */
 Deno.serve((req) => {
   const url = new URL(req.url);
   const pathname = url.pathname;
@@ -26,6 +37,7 @@ Deno.serve((req) => {
     const { socket, response } = Deno.upgradeWebSocket(req);
     socket.addEventListener("open", async() => {
           socket.addEventListener("message", ({ data }) => {
+            channel.postMessage(data);
             //latestData = new TextEncoder().encode(data);
             latestData = data;
             dispatchEvent(broadcasterEvent);
@@ -46,6 +58,7 @@ Deno.serve((req) => {
       addEventListener("broadcastupdate", (event) => {
         controller.enqueue(latestData);
       },{signal});
+      
     },
     cancel() {
       //console.log("viewer left");
@@ -60,6 +73,7 @@ Deno.serve((req) => {
     },
   });
 }
+return new Response("404 Not Found", { status: 404 });
 });
 
 
