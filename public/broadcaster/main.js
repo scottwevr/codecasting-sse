@@ -2,7 +2,7 @@ let cmEditorElement = document.querySelector(".cm-editor");
 let view = cmEditorElement.querySelector(".cm-content").cmView.view;
 
 async function beginCodecast() {
-  const signalingServer = new WebSocket(`ws://${window.location.host}`);
+  const signalingServer = new WebSocket(`wss://${window.location.host}`);
     await new Promise((resolve) =>
     signalingServer.addEventListener("open", resolve)
   );
