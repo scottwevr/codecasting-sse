@@ -2,7 +2,9 @@ let cmEditorElement = document.querySelector(".cm-editor");
 let view = cmEditorElement.querySelector(".cm-content").cmView.view;
 
 async function beginCodecast() {
-  const signalingServer = new WebSocket(`wss://${window.location.host}`);
+  const protocol = window.location.protocol === "http:" ? "ws" : "wss";
+  console.log(protocol);
+  const signalingServer = new WebSocket(`${protocol}://${window.location.host}`);
     await new Promise((resolve) =>
     signalingServer.addEventListener("open", resolve)
   );
@@ -73,10 +75,10 @@ function makeFloating(
     event.preventDefault();
     const iframe = document.querySelector(".content");
     iframe.contentWindow.focus();
-    if (event.target.className === "close") {
-      element?.close();
-      //follower?.close();
-    }
+    
+
+  
+    if (event.target.className === "close") element?.close();
     const { x, y, target } = event;
     const rect = element.getBoundingClientRect();
     const iRect = iframe.getBoundingClientRect();
@@ -93,9 +95,10 @@ function makeFloating(
         iframe.style.pointerEvents = "none";
         if (isTranslating) {
           const translation = matrix
-            .translate(event.x - x, event.y - y)
-            .toString();
-          element.style.transform = translation;
+            .translate(event.x - x, event.y - y);
+            translation.e = Math.min(Math.max(0, translation.e), innerWidth - element.clientWidth);
+            translation.f = Math.min(Math.max(0, translation.f), innerHeight - element.clientHeight);
+          element.style.transform = translation.toString();
         } else {
           let matrixCopy = new DOMMatrix(matrix);
           if ((loc & n) > 0) {
@@ -124,6 +127,7 @@ function makeFloating(
       },
       { signal }
     );
+
     window.addEventListener(
       "pointerup",
       () => {

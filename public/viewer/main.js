@@ -94,7 +94,8 @@ function makeFloating(
         if (isTranslating) {
           const translation = matrix
             .translate(event.x - x, event.y - y)
-            .toString();
+            translation.e = Math.min(Math.max(0, translation.e), innerWidth - element.clientWidth);
+            translation.f = Math.min(Math.max(0, translation.f), innerHeight - element.clientHeight);
           element.style.transform = translation;
         } else {
           let matrixCopy = new DOMMatrix(matrix);
